@@ -1,0 +1,7 @@
+__pycache__/
+cookies/
+creds/
+.DS_store
+*.parquet
+*.xlsx
+*.json
