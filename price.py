@@ -7,7 +7,7 @@ from browser import USwitchPrices
 from common.datetime_config import DateTimeConfig
 from common.graphql import query_get_result
 from common.session import Session
-from common.utils import safe_dict_get, _get_safe
+from common.utils import _get_safe, safe_dict_get
 
 
 class Prices(DateTimeConfig, Session):
@@ -133,9 +133,11 @@ class Prices(DateTimeConfig, Session):
     def parse_plan(self, plan: dict, **kwargs) -> dict:
         electricity = plan.get('electricity', {}).get('til', {})
         electricity_tarrif = electricity.get('tariffRate', {})
+        electricity_tarrif_peak = list(filter(lambda x: x['rateLabel'] == 'peak', electricity_tarrif))[0]
 
         gas = plan.get('gas', {}).get('til', {})
         gas_tarrif = gas.get('tariffRate', {})
+        gas_tarrif_peak = list(filter(lambda x: x['rateLabel'] == 'peak', gas_tarrif))[0]
 
         info = {
             'input_post_code': self.post_code,
@@ -148,12 +150,14 @@ class Prices(DateTimeConfig, Session):
             'supplier_id': plan.get('supplier', {}).get('key'),
             'supplier_name': plan.get('supplier', {}).get('name'),
             'duration_months': safe_dict_get(plan.get('rateGuarantee'), 'duration'),
-            'electricity_price': electricity_tarrif[0].get('price'),
-            'electricity_price_label': electricity_tarrif[0].get('rateLabel'),
+            'electricity_price': electricity_tarrif_peak.get('price'),
+            'electricity_price_label': electricity_tarrif_peak.get('rateLabel'),
+            'electricity_standing_charge': _get_safe(electricity, 'standingCharge'),
             'electricity_exit_fee': _get_safe(electricity, 'exitFees', 'fee'),
             'electricity_tarrif': electricity_tarrif,
-            'gas_price': gas_tarrif[0].get('price'),
-            'gas_price_label': gas_tarrif[0].get('rateLabel'),
+            'gas_price': gas_tarrif_peak.get('price'),
+            'gas_price_label': gas_tarrif_peak.get('rateLabel'),
+            'gas_standing_charge': _get_safe(gas, 'standingCharge'),
             'gas_exit_fee': _get_safe(gas, 'exitFees', 'fee'),
             'gas_tarrif': gas_tarrif,
             'payment_method': plan.get('paymentMethod'),
@@ -174,9 +178,21 @@ class Prices(DateTimeConfig, Session):
         df.to_excel(f'output/{file_name}.xlsx', index=False, engine='openpyxl')
 
     def main(self):
-        self.get_plans()
-        self.to_dataframe()
+        try:
+            self.get_plans()
+        except Exception as e:
+            print(f'failed to scrape {self.post_code}: {e}')
+
+
+def scrape():
+    df = pd.read_csv('data/post_codes.csv', dtype=str)
+    post_codes = df['post_code'].tolist()[92:100]
+
+    for index, post_code in enumerate(post_codes):
+        print(f'[{index}/{len(post_codes)}] post_code: {post_code}')
+        Prices(post_code).main()
 
 
 if __name__ == '__main__':
-    Prices('WS13 8PE').main()
+    # Prices('CH65 9AA').main()
+    scrape()

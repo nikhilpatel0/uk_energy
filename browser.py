@@ -45,10 +45,12 @@ class USwitchPrices:
                 return 'failed'
 
             address_box = Select(driver.find_element(By.NAME, 'addresses'))
-            address_selected = address_box.select_by_index(1)
+            address_selected = address_box.select_by_index(len(address_box.options) - 1)
+            sleep(1)
 
             confirm_ownership = driver.find_element(By.CLASS_NAME, '_checkboxText_18pt4_7')
             confirm_ownership.click()
+            sleep(1)
 
             def continue_aka_submit(wait: bool = True):
                 continue_1 = driver.find_element(By.XPATH, "//button[@type='submit']")
@@ -78,12 +80,20 @@ class USwitchPrices:
             email.send_keys(fake_email)
             sleep(5)
 
+            # try:
+            #     email_opt_out = driver.find_element(By.CLASS_NAME, 'consent')
+            #     email_opt_out.click()
+            #     sleep(1)
+            # except Exception:
+            #     pass
+
             continue_aka_submit(wait=False)
             sleep(5)
 
             if len(driver.find_elements(By.CLASS_NAME, '_smartMeterInterestContent_mkazr_1')) > 0:
                 smart_meter_interest = driver.find_elements(By.NAME, 'smart-meter-interest')
                 smart_meter_interest[1].click()
+                sleep(2)
                 continue_aka_submit(wait=False)
 
             WebDriverWait(driver, 200).until(
@@ -103,6 +113,7 @@ class USwitchPrices:
             WebDriverWait(driver, 200).until(
                 EC.presence_of_element_located((By.CLASS_NAME, '_filterButton_1un9x_1'))
             )
+            sleep(3)
 
             self.cookies = driver.get_cookies()
 
