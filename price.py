@@ -186,7 +186,7 @@ class Prices(DateTimeConfig, Session):
 
 def scrape():
     df = pd.read_csv('data/post_codes.csv', dtype=str)
-    post_codes = df['post_code'].tolist()[92:100]
+    post_codes = df['post_code'].tolist()[500:800]
 
     for index, post_code in enumerate(post_codes):
         print(f'[{index}/{len(post_codes)}] post_code: {post_code}')
