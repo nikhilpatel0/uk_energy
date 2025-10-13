@@ -397,10 +397,3 @@ class PostCodesInfo(DateTimeConfig, Session):
 
 if __name__ == '__main__':
     PostCodesInfo().main()
-
-
-
-
-POST_CODE TEXT,
-LATITUDE TEXT,
-LONGITUDE TEXT,
